@@ -1,9 +1,10 @@
-const { model } = require('mongoose')
+const { model, Schema } = require('mongoose')
 
-const MoonDataModel = model('MoonData', {
+const MoonScema = new Schema({
   date: String,
   zodiac: Number,
   hour: Number,
   fullmoon: Boolean,
 })
-module.exports = MoonDataModel
+
+module.exports = model('MoonData', MoonScema)

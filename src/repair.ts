@@ -1,28 +1,35 @@
 require('dotenv').config()
-const { connect } = require('mongoose')
+import SunCalc from 'suncalc'
+
+import type { BaseObject } from './types.js'
+
+const { connect, disconnect } = require('mongoose')
+
 const MoonData = require('./MoonData.model')
+
 const { mongoUrl } = process.env
-const SunCalc = require('suncalc')
-const Latitude = 55.4521 //Широта Москвы
-const longitude = 37.3704 //долгота Москвы
 
-const startDate = new Date('2022/09/01')
-const finalDate = new Date('2024/03/01')
-// const finalDate = new Date('2022/11/11')
+const startDate = new Date('2025/03/01')
+const finalDate = new Date('2025/03/31')
 
-let setDay = (param: number) =>
+const setDay = (param: number) =>
   new Date(
     startDate.getFullYear(),
     startDate.getMonth(),
     startDate.getDate() + param
   )
 
-connect(mongoUrl, async () => {
+;(async () => {
   try {
+    await connect(mongoUrl || '')
     console.log('======>>')
-    console.log({ startDate, finalDate })
+    console.log({
+      startDate: startDate.toLocaleDateString(),
+      finalDate: finalDate.toLocaleDateString(),
+    })
 
-    const allBaseData = await MoonData.find()
+    const allBaseData: BaseObject[] = await MoonData.find()
+    console.log(29, 'First Instance:', allBaseData[0])
     const newDataArray = []
 
     let index = 0
@@ -32,20 +39,14 @@ connect(mongoUrl, async () => {
     while (today <= finalDate) {
       today = setDay(index++)
       const dateText: string = today.toLocaleDateString('ru')
-      const foundInBase = allBaseData.find(
-        ({ date }: { date: string }) => date === dateText
-      )
+      const foundInBase = allBaseData.find(({ date }) => date === dateText)
 
       if (foundInBase) {
         last = foundInBase
       } else {
         console.log(dateText, ': noData')
 
-        const { fraction } = SunCalc.getMoonIllumination(
-          today,
-          Latitude,
-          longitude
-        )
+        const { fraction } = SunCalc.getMoonIllumination(today)
 
         newDataArray.push({
           date: dateText,
@@ -55,11 +56,10 @@ connect(mongoUrl, async () => {
         })
       }
     }
-    console.log(newDataArray)
+    console.log(58, newDataArray)
     await MoonData.insertMany(newDataArray)
+    disconnect()
   } catch (error) {
     console.log(error)
   }
-})
-
-export {}
+})()

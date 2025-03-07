@@ -1,31 +1,45 @@
 require('dotenv').config()
-const readdir = require('fs/promises').readdir
-const fileParse = require('./parseFile')
-const { connect } = require('mongoose')
+const { readdir } = require('fs/promises')
+
+const { connect, disconnect } = require('mongoose')
+
 const MoonData = require('./MoonData.model')
+const { fileParceFoo } = require('./parseFile')
+
 const { mongoUrl, dirName } = process.env
 
-connect(mongoUrl, async () => {
+;(async () => {
   try {
-    const fileNames: string[] = await readdir(dirName)
-    console.log('fileNames:', fileNames)
+    if (!mongoUrl) return
+    await connect(mongoUrl)
+
+    const fileNames = await readdir(dirName || './data')
+    console.log(11, 'fileNames:', fileNames)
+
     const allResults = await Promise.all(
-      fileNames.map((file) => fileParse(`${dirName}/${file}`))
+      fileNames
+        .filter((item) => item.includes('.txt'))
+        .map((file) => fileParceFoo(file))
     )
-    console.log(allResults)
+
+    console.log(15, allResults)
 
     const oneBigDataArray = Object.values(
-      allResults.reduce((acc, el) => ({ ...acc, ...el }))
+      allResults.reduce((acc, el) => ({ ...acc, ...el }), [])
     )
-    console.log(oneBigDataArray)
+
+    console.log(20, oneBigDataArray)
 
     await MoonData.deleteMany()
     await MoonData.insertMany(oneBigDataArray)
     const baseData = await MoonData.find({
-      date: new Date().toLocaleDateString('ru'),
+      date: new Date(2025, 2, 1).toLocaleDateString('ru'),
     })
-    console.log(baseData)
+    console.log(33, baseData)
+    console.log(28, 'FINISH!')
+
+    await disconnect() // Добавляем await
   } catch (error) {
-    console.log(error)
+    console.log(31, error)
   }
-})
+})()
