@@ -1,66 +1,51 @@
-require('dotenv').config()
-import type { DayObject } from './types.js'
+require('dotenv').config();
+import type { DayObject } from './types.js';
 
-const fs = require('fs/promises')
+const fs = require('fs/promises');
 
-const SunCalc = require('suncalc')
+const SunCalc = require('suncalc');
 
-const { zodiacArray } = require('./zodiacArray')
+const { zodiacArray } = require('./zodiacArray');
 
-const { dirName } = process.env
+const { dirName } = process.env;
 
 export const fileParceFoo = async (fileName: string) => {
   try {
-    const fileData: string = await fs.readFile(`${dirName}/${fileName}`, 'utf8')
-    const startObject: DayObject = {}
+    console.log(14, fileName);
+    const fileData: string = await fs.readFile(`${dirName}/${fileName}`, 'utf8');
+    const startObject: DayObject = {};
     return fileData
       .trim()
       .split('\n')
       .reduce((acc: DayObject, el: string) => {
-        const [data, hourSt, sign, comment]: string[] = el
+        const [dateStr, hourSt, zodiacStr]: string[] = el
           .trim()
           .split(' ')
-          .filter((el) => el.trim())
+          .filter((el) => el.trim());
 
-        const day = data?.slice(-10, -8)
-        const month = data?.slice(-7, -5)
-        const year = data?.slice(-4)
-        const today = new Date(+year, +month - 1, +day)
-        const dateString: string = today.toLocaleDateString('ru').toString()
+        const [year] = fileName.split('.');
+        const [day, month] = dateStr.split('.');
 
-        const zodiacText: string = sign?.slice(-3)
-        let zodiac: number = zodiacArray.indexOf(zodiacText)
+        // "YYYY-MM-DD" -  шаблон задания даты new Date()
+        const dateObj = new Date(`${year}-${month}-${day}`);
 
-        let hour = 0
+        const today = dateObj.toLocaleDateString('ru');
 
-        if (comment !== '<<<') {
-          // пишем предыдущее значение, если нет данных об этом дне
-          if (acc[dateString]) return acc
-          hour = 0
-        } else {
-          hour = +hourSt
-          if (hour > 12) {
-            if (zodiac === 0) {
-              zodiac = 11
-            } else {
-              zodiac--
-            }
-          }
-        }
+        const zodiac: number = zodiacArray.indexOf(zodiacStr);
 
-        const { fraction } = SunCalc.getMoonIllumination(today)
+        const { fraction } = SunCalc.getMoonIllumination(dateObj);
 
         return {
           ...acc,
-          [dateString]: {
-            date: dateString,
+          [today]: {
+            date: dateObj,
             zodiac,
-            hour,
-            fullmoon: fraction > 0.97,
+            hour: hourSt,
+            fullmoon: fraction > 0.91,
           },
-        }
-      }, startObject)
+        };
+      }, startObject);
   } catch (error) {
-    console.log(71, error)
+    console.error(49, 'fileParceFoo', error);
   }
-}
+};

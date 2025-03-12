@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --exec ts-node src/moon",
+    "start": "nodemon",
     "dev": "ts-node src/moon",
     "repair": "ts-node src/repair.ts"
   },
@@ -21,9 +21,13 @@
     "@types/node": "^18.19.22",
     "@types/suncalc": "^1.9.2",
     "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.3",
     "globals": "^16.0.0",
     "nodemon": "^3.1.9",
+    "pretier": "^0.0.1",
+    "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.25.0"
