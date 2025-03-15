@@ -1,51 +1,102 @@
 require('dotenv').config();
-import type { DayObject } from './types.js';
+import { DateTime } from 'luxon';
+
+import type { FileDatesMap } from './types';
 
 const fs = require('fs/promises');
 
 const SunCalc = require('suncalc');
 
-const { zodiacArray } = require('./zodiacArray');
+const { zodiacArray, localData } = require('./zodiacArray');
 
 const { dirName } = process.env;
 
-export const fileParceFoo = async (fileName: string) => {
+export const fileParseFoo = async (fileName: string) => {
   try {
-    console.log(14, fileName);
-    const fileData: string = await fs.readFile(`${dirName}/${fileName}`, 'utf8');
-    const startObject: DayObject = {};
-    return fileData
+    if (!dirName) throw new Error('Не указан dirName в переменных окружения');
+
+    const fileData: string = await fs.readFile(
+      `${dirName}/${fileName}`,
+      'utf8',
+    );
+
+    if (!fileData.trim()) throw new Error(`Файл ${fileName} пуст`);
+
+    const [year] = fileName.split('.');
+
+    let startDate: DateTime | null = null;
+    let endDate: DateTime | null = null;
+
+    const daysMap: FileDatesMap = {};
+
+    fileData
       .trim()
       .split('\n')
-      .reduce((acc: DayObject, el: string) => {
-        const [dateStr, hourSt, zodiacStr]: string[] = el
+      .forEach((el) => {
+        const [dateStr, hourAsString, zodiacStr] = el
           .trim()
           .split(' ')
-          .filter((el) => el.trim());
+          .filter(Boolean);
 
-        const [year] = fileName.split('.');
         const [day, month] = dateStr.split('.');
+        const dateObj = DateTime.fromObject(
+          { year: Number(year), month: Number(month), day: Number(day) },
+          { zone: 'Europe/Moscow' },
+        );
 
-        // "YYYY-MM-DD" -  шаблон задания даты new Date()
-        const dateObj = new Date(`${year}-${month}-${day}`);
+        startDate = startDate ? DateTime.min(startDate, dateObj) : dateObj;
+        endDate = endDate ? DateTime.max(endDate, dateObj) : dateObj;
 
-        const today = dateObj.toLocaleDateString('ru');
+        const today = dateObj.toFormat(localData);
+        const { fraction } = SunCalc.getMoonIllumination(dateObj.toJSDate());
 
-        const zodiac: number = zodiacArray.indexOf(zodiacStr);
-
-        const { fraction } = SunCalc.getMoonIllumination(dateObj);
-
-        return {
-          ...acc,
-          [today]: {
-            date: dateObj,
-            zodiac,
-            hour: hourSt,
-            fullmoon: fraction > 0.91,
-          },
+        daysMap[today] = {
+          date: today,
+          zodiac: zodiacArray.indexOf(zodiacStr),
+          hour: Number(hourAsString),
+          fullmoon: fraction > 0.99,
         };
-      }, startObject);
+      });
+
+    // Заполняем пропущенные даты
+    let midDayData = daysMap[startDate?.toFormat(localData) ?? ''];
+    if (!midDayData)
+      throw new Error('Ошибка: не удалось определить начальные данные');
+
+    for (
+      let indexDate = startDate!;
+      indexDate <= endDate!;
+      indexDate = indexDate.plus({ days: 1 })
+    ) {
+      const localDate = indexDate.toFormat(localData);
+
+      if (daysMap[localDate]) {
+        midDayData = { ...daysMap[localDate] };
+        if (daysMap[localDate].hour > 12) {
+          // отматываем назад знак зодиака если смена знака позже 12 часов
+          daysMap[localDate].zodiac = (daysMap[localDate].zodiac + 11) % 12;
+        }
+      } else {
+        const { fraction } = SunCalc.getMoonIllumination(indexDate.toJSDate());
+        daysMap[localDate] = {
+          date: localDate,
+          zodiac: midDayData.zodiac,
+          hour: 0,
+          fullmoon: fraction > 0.91,
+        };
+      }
+    }
+
+    console.log('===|fileParseFoo|===>');
+    const sortedDays = Object.values(daysMap).sort(
+      (a, b) =>
+        DateTime.fromFormat(a.date, localData).toMillis() -
+        DateTime.fromFormat(b.date, localData).toMillis(),
+    );
+
+    // console.log(sortedDays);
+    return sortedDays;
   } catch (error) {
-    console.error(49, 'fileParceFoo', error);
+    console.error(49, 'fileParseFoo', error);
   }
 };

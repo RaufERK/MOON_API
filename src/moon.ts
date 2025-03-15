@@ -1,86 +1,57 @@
 require('dotenv').config();
-import { DayObject, BaseObject } from './types';
 
-const { readdir } = require('fs/promises');
+import { readdir } from 'fs/promises';
 
-const { connect, disconnect } = require('mongoose');
+import { connect, disconnect } from 'mongoose';
 
-// const MoonData = require('./MoonData.model');
-const { fileParceFoo } = require('./parseFile');
+import { fileParseFoo } from './parseFile';
 
-const { mongoUrl, dirName } = process.env;
+const MoonData = require('./MoonData.model');
 
-type ExtremDate = { startDate: Date; endDate: Date };
+const mongoUrl = process.env.mongoUrl;
+const dirName = process.env.dirName || './data';
 
 (async () => {
+  if (!mongoUrl) {
+    console.error('Нет данных для СУБД');
+    return;
+  }
+
+  console.log('==== START ====>');
+
+  await connect(mongoUrl);
+  console.log('Подключился к MongoDB');
+
   try {
-    console.log('==== START ====>');
-    console.log('==== START ====>');
-    console.log('==== START ====>');
-    if (!mongoUrl) return;
-    await connect(mongoUrl);
+    const fileNames = (await readdir(dirName)).filter((file) =>
+      file.endsWith('.txt'),
+    );
+    console.log('Найденные файлы:', fileNames);
 
-    const fileNames = await readdir(dirName || './data');
-    console.log(17, 'fileNames:', fileNames);
-
-    const [filesData]: DayObject[] = await Promise.all(
-      fileNames.filter((item) => item.includes('.txt')).map((file) => fileParceFoo(file)),
+    const allData = await Promise.allSettled(
+      fileNames.map((file) => fileParseFoo(file)),
     );
 
-    let startDate = new Date();
-    let endDate = new Date(1900, 1, 1);
+    // Фильтруем успешные результаты и разворачиваем массив
+    const oneBigDataArray = allData
+      .filter((res) => res.status === 'fulfilled')
+      .map((res) => (res as PromiseFulfilledResult<any>).value)
+      .flat();
 
-    console.log(
-      28,
-      Object.values(filesData).forEach(({ date }) => {
-        console.log(date);
-        startDate = startDate < date ? startDate : date;
-        endDate = endDate > date ? endDate : date;
-      }),
-    );
+    console.log(`Обработано записей: ${oneBigDataArray.length}`);
 
-    console.log('startDate:', startDate.toLocaleDateString('ru'));
-    console.log('endDate:', endDate.toLocaleDateString('ru'));
+    await MoonData.deleteMany();
+    await MoonData.insertMany(oneBigDataArray);
+    console.log('Записал всё в базу');
 
-    while (startDate < endDate) {
-      console.log(39, startDate.toLocaleDateString('ru'));
-      startDate.setDate(startDate.getDate() + 1);
-    }
-    // console.log(startDate.toLocaleDateString('ru'));
-    // startDate.setDate(startDate.getDay() + 1);
-    // console.log(startDate);
-    // startDate.setDate(startDate.getDay() + 1);
-    // console.log(startDate);
+    const today = new Date().toLocaleDateString('ru');
+    const baseData = await MoonData.find({ date: today });
 
-    // const { startDate, endDate } = .reduce(
-    //   (acc, item: BaseObject) => {
-    //     console.log(32, item);
-    //     return {
-    //       startDate: '',
-    //       endDate: '',
-    //     };
-    //   },
-    //   { startDate: '', endDate: '' },
-    // );
-
-    // console.log(42, allObjArray);
-
-    // const oneBigDataArray = Object.values(
-    //   allResults.reduce((acc, el) => ({ ...acc, ...el }), [])
-    // )
-
-    // console.log(20, oneBigDataArray)
-
-    // await MoonData.deleteMany()
-    // await MoonData.insertMany(oneBigDataArray)
-    // const baseData = await MoonData.find({
-    //   date: new Date(2025, 2, 1).toLocaleDateString('ru'),
-    // })
-    // console.log(33, baseData)
-    console.log(52, 'FINISH!');
-
-    await disconnect(); // Добавляем await
+    console.log('EXAMPLE:', baseData);
   } catch (error) {
-    console.log(31, error);
+    console.error('Ошибка:', error);
+  } finally {
+    console.log('Отключаюсь от MongoDB...');
+    await disconnect();
   }
 })();

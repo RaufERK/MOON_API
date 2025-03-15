@@ -1,10 +1,8 @@
 export type BaseObject = {
-  date: Date;
+  date: string;
   zodiac: number;
   hour: number;
   fullmoon: boolean;
 };
 
-export type DayObject = {
-  [index: string]: BaseObject;
-};
+export type FileDatesMap = Record<string, BaseObject>;
