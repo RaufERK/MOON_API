@@ -3,18 +3,24 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "nodemon",
     "dev": "ts-node src/moon",
-    "repair": "ts-node src/repair.ts"
+    "repair": "ts-node src/repair.ts",
+    "new": "node src/newMoon"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "astronomia": "^4.1.1",
+    "astronomy-engine": "^2.1.19",
     "dotenv": "^16.4.7",
+    "ephemeris": "^2.0.0",
     "luxon": "^3.5.0",
     "mongoose": "^7.8.6",
-    "suncalc": "^1.9.0"
+    "suncalc": "^1.9.0",
+    "sweph": "^2.10.3-4"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
