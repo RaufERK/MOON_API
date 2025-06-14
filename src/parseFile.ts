@@ -94,7 +94,7 @@ export const fileParseFoo = async (fileName: string) => {
         DateTime.fromFormat(b.date, localData).toMillis(),
     );
 
-    // console.log(sortedDays);
+    console.log(sortedDays);
     return sortedDays;
   } catch (error) {
     console.error(49, 'fileParseFoo', error);

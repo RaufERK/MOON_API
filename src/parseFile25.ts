@@ -1,7 +1,7 @@
 require('dotenv').config();
 import { readFile } from 'fs/promises';
 
-import { DayObject } from './types.js';
+import { BaseObject } from './types.js';
 
 const SunCalc = require('suncalc');
 
@@ -10,11 +10,11 @@ const { zodiacArray } = require('./zodiacArray');
 export const fileParceFoo = async (fileName: string) => {
   try {
     const fileData: string = await readFile(fileName, 'utf8');
-    const startObject: DayObject = {};
+    const startObject = {};
     return fileData
       .trim()
       .split('\n')
-      .reduce((acc: DayObject, el: string) => {
+      .reduce((acc: BaseObject, el: string) => {
         const [data, time, sign, comment]: string[] = el
           .trim()
           .split(' ')
