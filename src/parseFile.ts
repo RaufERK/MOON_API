@@ -1,13 +1,12 @@
-require('dotenv').config();
+// src/parseFile.ts
+import 'dotenv/config';
+import fs from 'node:fs/promises';
+
 import { DateTime } from 'luxon';
+import SunCalc from 'suncalc';
 
-import type { FileDatesMap } from './types';
-
-const fs = require('fs/promises');
-
-const SunCalc = require('suncalc');
-
-const { zodiacArray, localData } = require('./zodiacArray');
+import type { FileDatesMap } from './types.js';
+import { zodiacArray, localData } from './zodiacArray.js';
 
 const { dirName } = process.env;
 

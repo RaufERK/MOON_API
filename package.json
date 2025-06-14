@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "nodemon",
-    "dev": "ts-node src/moon",
-    "repair": "ts-node src/repair.ts",
-    "new": "node src/newMoon"
+    "dev": "node --no-warnings --loader ts-node/esm ./src/moon.ts",
+    "start": "nodemon --watch src --ext ts --exec \"node --no-warnings --loader ts-node/esm ./src/moon.ts\"",
+    "lint": "eslint \"src/**/*.{ts,js}\"",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\""
   },
   "author": "",
   "license": "ISC",
@@ -16,26 +18,27 @@
     "astronomy-engine": "^2.1.19",
     "dotenv": "^16.4.7",
     "ephemeris": "^2.0.0",
-    "luxon": "^3.5.0",
-    "mongoose": "^7.8.6",
+    "luxon": "^3.6.1",
+    "mongoose": "^8.15.2",
     "suncalc": "^1.9.0",
     "sweph": "^2.10.3-4"
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
+    "@eslint/js": "^9.29.0",
     "@types/mongoose": "^5.11.96",
-    "@types/node": "^18.19.22",
+    "@types/node": "^24.0.1",
     "@types/suncalc": "^1.9.2",
-    "eslint": "^9.21.0",
-    "eslint-config-prettier": "^10.1.1",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0",
+    "eslint": "^9.29.0",
+    "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-prettier": "^5.4.1",
     "globals": "^16.0.0",
     "nodemon": "^3.1.9",
-    "pretier": "^0.0.1",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.25.0"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.0"
   }
 }

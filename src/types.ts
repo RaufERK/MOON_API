@@ -1,3 +1,4 @@
+// src/types.ts
 export type BaseObject = {
   date: string;
   zodiac: number;

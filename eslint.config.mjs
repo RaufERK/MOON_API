@@ -1,59 +1,59 @@
-import pluginJs from '@eslint/js'
-import importPlugin from 'eslint-plugin-import'
-import globals from 'globals'
-import tseslint from 'typescript-eslint'
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import importPlugin from 'eslint-plugin-import';
+import prettier from 'eslint-config-prettier';
 
-/** @type {import('eslint').Linter.Config[]} */
-
+/** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
+  // 1) Базовые правила JS
+  js.configs.recommended,
+
+  // 2) Рекомендованные + type-checked правила для TS
+  ...tseslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+
+  // 3) Наши общие дополнения (работают и для .js, и для .ts)
   {
-    files: ['**/*.{js,mjs,cjs,ts}'],
-  },
-  {
-    files: ['**/*.ts'],
+    files: ['**/*.{js,ts}'],
     languageOptions: {
-      sourceType: 'commonjs', // TypeScript-файлы в CommonJS
-      parser: tseslint.parser,
       parserOptions: {
-        project: './tsconfig.json',
-        sourceType: 'commonjs',
-        ecmaVersion: 2021,
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        project: './tsconfig.json', // нужно только один раз —
+        tsconfigRootDir: import.meta.dirname,
       },
     },
-  },
-  {
-    languageOptions: {
-      globals: globals.node,
-    },
-  },
-  pluginJs.configs.recommended,
-  ...tseslint.configs.recommended,
-  {
-    plugins: {
-      import: importPlugin,
+    plugins: { import: importPlugin },
+    settings: {
+      // чтобы eslint-plugin-import умел понимать .ts-пути
+      'import/resolver': {
+        typescript: { project: './tsconfig.json' },
+      },
     },
     rules: {
-      'import/no-commonjs': 'off', // Отключает ошибки на `require`
-      '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/no-var-requires': 'off', // Отключает ошибки на `require` в TS
+      // группировка и сортировка импортов
       'import/order': [
         'error',
         {
           groups: [
-            'builtin', // Встроенные модули Node.js (fs, path)
-            'external', // Пакеты из node_modules (react, express)
-            'internal', // Внутренние модули проекта (@/utils, @/components)
-            'parent', // Импорты через `../`
-            'sibling', // Импорты через `./`
-            'index', // Импорты `index.ts` / `index.js`
+            'builtin',
+            'external',
+            'internal',
+            'parent',
+            'sibling',
+            'index',
           ],
-          'newlines-between': 'always', // Добавляет пустую строку между группами
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
+
+      // немножко TS-чистоты
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/consistent-type-imports': 'error',
     },
   },
-]
+
+  // 4) Ставит точку: отключает правила, конфликтующие с Prettier
+  prettier,
+];

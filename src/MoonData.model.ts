@@ -1,4 +1,5 @@
-const { model, Schema } = require('mongoose');
+// src/MoonData.model.ts
+import { model, Schema } from 'mongoose';
 
 const MoonSchema = new Schema({
   date: String,
@@ -7,4 +8,5 @@ const MoonSchema = new Schema({
   fullmoon: Boolean,
 });
 
-module.exports = model('MoonData', MoonSchema);
+export const MoonData = model('MoonData', MoonSchema);
+

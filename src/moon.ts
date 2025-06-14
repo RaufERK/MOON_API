@@ -1,12 +1,13 @@
-require('dotenv').config();
+// src/moon.ts
+import 'dotenv/config';
 
 import { readdir } from 'fs/promises';
 
 import { connect, disconnect } from 'mongoose';
 
-import { fileParseFoo } from './parseFile';
+import { MoonData } from './MoonData.model.js';
+import { fileParseFoo } from './parseFile.js';
 
-const MoonData = require('./MoonData.model');
 
 const mongoUrl = process.env.mongoUrl;
 const dirName = process.env.dirName || './data';
