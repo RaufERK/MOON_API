@@ -1,3 +1,4 @@
+// src/parseFile.ts
 // Загружаем переменные окружения (.env)
 import 'dotenv/config';
 import fs from 'node:fs/promises';

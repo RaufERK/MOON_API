@@ -17,4 +17,3 @@ export const zodiacArray = [
 export const latitude = 55.4521;
 export const longitude = 37.37;
 export const localData = 'dd.MM.yyyy';
-export const fullMoonFactor = 0.98;

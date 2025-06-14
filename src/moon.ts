@@ -1,7 +1,9 @@
+// src/moon.ts
 // Загружаем переменные окружения из .env
 import 'dotenv/config';
 
 import { readdir } from 'fs/promises';
+
 import { connect, disconnect } from 'mongoose';
 
 import { MoonData } from './MoonData.model.js';

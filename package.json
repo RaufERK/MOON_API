@@ -5,9 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "auto": "node --no-warnings --loader ts-node/esm ./src/autoMoon.ts",
+    "start": "node --no-warnings --loader ts-node/esm ./src/auto.ts",
+    "autotest": "node --no-warnings --loader ts-node/esm ./src/autoMoon.ts",
     "dev": "node --no-warnings --loader ts-node/esm ./src/moon.ts",
-    "start": "nodemon --watch src --ext ts --exec \"node --no-warnings --loader ts-node/esm ./src/moon.ts\"",
+    "old": "nodemon --watch src --ext ts --exec \"node --no-warnings --loader ts-node/esm ./src/moon.ts\"",
     "lint": "eslint \"src/**/*.{ts,js}\"",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\""
