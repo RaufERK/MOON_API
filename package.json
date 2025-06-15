@@ -6,12 +6,13 @@
   "type": "module",
   "scripts": {
     "start": "node --no-warnings --loader ts-node/esm ./src/auto.ts",
+    "check": "node --no-warnings --loader ts-node/esm ./src/check.ts",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "lint": "eslint \"src/**/*.{ts,js}\"",
+    "fix": "npm run lint -- --fix",
     "autotest": "node --no-warnings --loader ts-node/esm ./src/autoMoon.ts",
     "dev": "node --no-warnings --loader ts-node/esm ./src/moon.ts",
-    "old": "nodemon --watch src --ext ts --exec \"node --no-warnings --loader ts-node/esm ./src/moon.ts\"",
-    "lint": "eslint \"src/**/*.{ts,js}\"",
-    "lint:fix": "npm run lint -- --fix",
-    "format": "prettier --write \"src/**/*.{ts,js,json,md}\""
+    "old": "nodemon --watch src --ext ts --exec \"node --no-warnings --loader ts-node/esm ./src/moon.ts\""
   },
   "author": "",
   "license": "ISC",
@@ -36,6 +37,7 @@
     "globals": "^16.0.0",
     "nodemon": "^3.1.9",
     "prettier": "^3.5.3",
+    "prettier-plugin-sort-imports": "^1.8.8",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0"

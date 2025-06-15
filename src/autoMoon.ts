@@ -1,18 +1,16 @@
 // src/autoMoon.ts
 
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import 'dotenv/config';
 
 import { moonposition, julian } from 'astronomia';
-import { DateTime } from 'luxon';
 import { connect, disconnect } from 'mongoose';
+import { DateTime } from 'luxon';
 
 import { MoonData } from './MoonData.model.js';
 import { zodiacArray } from './zodiacArray.js';
 
 /* ──────────────────────────────────────────────────────────── */
 /* Тип-патч, чтобы подавить any-войсы от astronomia            */
-type MoonPos = { lon: number };
 /* ──────────────────────────────────────────────────────────── */
 
 /** Возвращает знак Зодиака Луны на *день*:

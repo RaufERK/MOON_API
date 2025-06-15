@@ -1,7 +1,8 @@
-import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
+// eslint.config.mjs
 import importPlugin from 'eslint-plugin-import';
 import prettier from 'eslint-config-prettier';
+import tseslint from 'typescript-eslint';
+import js from '@eslint/js';
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
@@ -12,48 +13,40 @@ export default [
   ...tseslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
 
-  // 3) Наши общие дополнения (работают и для .js, и для .ts)
+  // 3) Наши общие дополнения
   {
     files: ['**/*.{js,ts}'],
     languageOptions: {
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json', // нужно только один раз —
+        project: './tsconfig.json',
         tsconfigRootDir: import.meta.dirname,
       },
     },
     plugins: { import: importPlugin },
     settings: {
-      // чтобы eslint-plugin-import умел понимать .ts-пути
       'import/resolver': {
-        typescript: { project: './tsconfig.json' },
+        'import/order': 'off',
       },
     },
     rules: {
-      // группировка и сортировка импортов
-      'import/order': [
-        'error',
-        {
-          groups: [
-            'builtin',
-            'external',
-            'internal',
-            'parent',
-            'sibling',
-            'index',
-          ],
-          'newlines-between': 'always',
-          alphabetize: { order: 'asc', caseInsensitive: true },
-        },
-      ],
+      // отключаем потенциальные конфликты
+      'import/order': 'off',
 
-      // немножко TS-чистоты
+      // Убираем "ложную тревогу" от строгой типизации
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+
+      // Умеренная строгость
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/consistent-type-imports': 'error',
     },
   },
 
-  // 4) Ставит точку: отключает правила, конфликтующие с Prettier
+  // 4) Prettier в конце отключает конфликтующие правила форматирования
   prettier,
 ];

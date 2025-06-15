@@ -1,34 +1,37 @@
 // src/auto.ts
 import 'dotenv/config';
 
-import { moonposition, julian } from 'astronomia';
-import { DateTime } from 'luxon';
+import { julian, moonposition, solar } from 'astronomia';
 import { connect, disconnect } from 'mongoose';
+import { DateTime } from 'luxon';
 import SunCalc from 'suncalc';
 
 import { MoonData } from './MoonData.model.js';
 
 const fullMoonFactor = 0.98;
 
-/** тип-заплатка для astronomia */
-type MoonPos = { lon: number };
+function deg(rad: number) {
+  return (rad * 180) / Math.PI;
+}
 
-/** знак Луны (0 … 11) в 15-00 МСК */
-function lunarSignAt15Msk(dt: DateTime): number {
-  const dtUtc = dt.set({ hour: 12, minute: 0, second: 0, millisecond: 0 }); // 15:00 MSK = 12:00 UTC
-
+/** знак зодиака (0 = Козерог) на заданное UTC-время */
+function getZodiacSignAt(
+  dt: DateTime,
+  posFn: (jd: number) => { lon: number },
+): number {
   const jd =
-    julian.CalendarGregorianToJD(dtUtc.year, dtUtc.month, dtUtc.day) +
-    dtUtc.hour / 24;
+    julian.CalendarGregorianToJD(dt.year, dt.month, dt.day) + dt.hour / 24;
 
-  const moon = moonposition.position(jd) as MoonPos;
-  const lonDeg = (moon.lon * 180) / Math.PI;
-
-  // поворот на +90°, чтобы 0 = Козерог
+  const lonDeg = deg(posFn(jd).lon);
   return Math.floor(((lonDeg + 90) % 360) / 30);
 }
 
-/** генерирует DateTime c today → today+10 лет (включительно) */
+/** дата → DateTime на 12:00 МСК (09:00 UTC) */
+function mskNoonUtc(dt: DateTime): DateTime {
+  return dt.set({ hour: 9, minute: 0, second: 0, millisecond: 0 });
+}
+
+/** генератор дат с today → today + 10 лет */
 function* dailyRangeTenYears(): Generator<DateTime> {
   let d = DateTime.now().startOf('day').setZone('UTC');
   const end = d.plus({ years: 10 }).minus({ days: 1 });
@@ -53,18 +56,17 @@ void (async () => {
 
   for (const dt of dailyRangeTenYears()) {
     const dateStr = dt.setZone('Europe/Moscow').toFormat('dd.MM.yyyy');
+    const dtUtc = mskNoonUtc(dt);
 
-    const sign = lunarSignAt15Msk(dt);
+    const moonZodiac = getZodiacSignAt(dtUtc, moonposition.position);
+    const sunZodiac = getZodiacSignAt(dtUtc, solar.apparentEquatorial);
 
-    const { fraction } = SunCalc.getMoonIllumination(
-      // проверяем фазу в то же время, 15:00 MSK
-      dt.set({ hour: 12, minute: 0, second: 0, millisecond: 0 }).toJSDate(),
-    );
+    const { fraction } = SunCalc.getMoonIllumination(dtUtc.toJSDate());
 
     bulk.push({
       date: dateStr,
-      zodiac: sign,
-      hour: 15, // фиксируем, что взято в 15:00 МСК
+      moonZodiac,
+      sunZodiac,
       fullmoon: fraction > fullMoonFactor,
     });
   }
