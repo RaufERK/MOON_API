@@ -19,7 +19,7 @@ import { zodiacArray } from './zodiacArray.js';
 
 const MSK = 'Europe/Moscow';
 const FULL_MOON_LIM = 0.97; // ≥ 98 % ⇒ полнолуние
-const YEAR_SPAN = 1; // сколько лет вперёд считаем
+const YEAR_SPAN = 10; // сколько лет вперёд считаем
 
 /* ── математика ─────────────────────────────────────────────── */
 
