@@ -14,6 +14,3 @@ export const zodiacArray = [
   'стрелец', // 11 стрелец
 ];
 
-export const latitude = 55.4521;
-export const longitude = 37.37;
-export const localData = 'dd.MM.yyyy';
