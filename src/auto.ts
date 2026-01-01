@@ -13,8 +13,7 @@ import { DateTime } from 'luxon';
 import SunCalc from 'suncalc';
 import 'dotenv/config';
 
-import type { MoonType } from './MoonData.model.js';
-import { MoonData } from './MoonData.model.js';
+import { MoonData, type MoonDataType } from 'amasters-shared-models';
 import { zodiacArray } from './zodiacArray.js';
 
 const MSK = 'Europe/Moscow';
@@ -72,7 +71,7 @@ void (async () => {
   await connect(process.env.mongoUrl);
   console.log('✅  MongoDB connected');
 
-  const rows: MoonType[] = [];
+  const rows: MoonDataType[] = [];
 
   for (const dtMSK of days()) {
     const hour = dtMSK.day === 1 && dtMSK.month === 1 ? 0 : 12;
