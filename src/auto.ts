@@ -29,6 +29,53 @@ const norm360 = (d: number) => ((d % 360) + 360) % 360;
 /** 0 = козерог (λ = 270° – 300°) */
 const toSign = (lonDeg: number) => Math.floor(norm360(lonDeg - 270) / 30);
 
+/* ── 14 stages (MOON_API/14-stages.md) ──────────────────────── */
+
+const DAY_MS = 1000 * 60 * 60 * 24;
+const TWO_WEEKS_MS = DAY_MS * 14;
+const YEARLY_MATH_MS = DAY_MS * 365; // keep legacy math (ignores leap years) for UI parity
+
+const veryStartMs = DateTime.fromObject(
+  { year: 1972, month: 6, day: 27 },
+  { zone: MSK },
+)
+  .startOf('day')
+  .toMillis();
+
+const mod = (n: number, m: number) => ((n % m) + m) % m;
+
+const stageIndexToAngle = (index0: number) => {
+  if (index0 === 12) return 0; // 13th stage — 12 o'clock
+  if (index0 === 13) return 180; // 14th stage — through center to 6 o'clock
+  return index0 * 30;
+};
+
+function calcDayStage(dtMSK: DateTime) {
+  const todayMs = dtMSK.startOf('day').toMillis();
+  const transition = DateTime.fromObject(
+    { year: dtMSK.year, month: 6, day: 27 },
+    { zone: MSK },
+  ).startOf('day');
+  const start = (dtMSK >= transition ? transition : transition.minus({ years: 1 }))
+    .startOf('day')
+    .toMillis();
+
+  const index0 = Math.trunc(mod(todayMs - start, TWO_WEEKS_MS) / DAY_MS); // 0..13
+  return {
+    stage14Day: index0 + 1, // 1..14
+    stage14DayAngle: stageIndexToAngle(index0),
+  };
+}
+
+function calcYearStage(dtMSK: DateTime) {
+  const todayMs = dtMSK.startOf('day').toMillis();
+  const index0 = Math.trunc(mod((todayMs - veryStartMs) / YEARLY_MATH_MS, 14)); // 0..13
+  return {
+    stage14Year: index0 + 1, // 1..14
+    stage14YearAngle: stageIndexToAngle(index0),
+  };
+}
+
 /** Истинная эклиптическая долгота Солнца (градусы) */
 function sunTrueLon(jd: number): number {
   const T = (jd - 2451545.0) / 36525; // столетия от J2000.0
@@ -71,7 +118,14 @@ void (async () => {
   await connect(process.env.mongoUrl);
   console.log('✅  MongoDB connected');
 
-  const rows: MoonDataType[] = [];
+  type MoonDataRow = MoonDataType & {
+    stage14Day?: number;
+    stage14DayAngle?: number;
+    stage14Year?: number;
+    stage14YearAngle?: number;
+  };
+
+  const rows: MoonDataRow[] = [];
 
   for (const dtMSK of days()) {
     const hour = dtMSK.day === 1 && dtMSK.month === 1 ? 0 : 12;
@@ -90,11 +144,18 @@ void (async () => {
       dtMSK.set({ hour }).toUTC().toJSDate(),
     ).fraction;
 
+    const { stage14Day, stage14DayAngle } = calcDayStage(dtMSK);
+    const { stage14Year, stage14YearAngle } = calcYearStage(dtMSK);
+
     rows.push({
       date: dtMSK.toFormat('dd.MM.yyyy'),
       moonZodiac: moonSign,
       sunZodiac: sunSign,
       fullmoon: fraction >= FULL_MOON_LIM,
+      stage14Day,
+      stage14DayAngle,
+      stage14Year,
+      stage14YearAngle,
     });
   }
 
