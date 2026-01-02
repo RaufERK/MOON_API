@@ -18,12 +18,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "amasters-shared-models": "github:RaufERK/amasters-shared-models#main",
     "astronomia": "^4.1.1",
     "dotenv": "^16.4.7",
     "luxon": "^3.6.1",
     "mongoose": "^8.15.2",
-    "suncalc": "^1.9.0",
-    "amasters-shared-models": "git+ssh://git@github.com/RaufERK/amasters-shared-models.git"
+    "suncalc": "^1.9.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
